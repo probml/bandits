@@ -5,16 +5,16 @@ from jax.random import split, PRNGKey
 import argparse
 from time import time
 
-from ..environments.tabular_env import TabularEnvironment
+from environments.tabular_env import TabularEnvironment
 
-from ..agents.linear_bandit import LinearBandit
-from ..agents.linear_kf_bandit import LinearKFBandit
-from ..agents.linear_bandit_wide import LinearBanditWide
-from ..agents.ekf_subspace import SubspaceNeuralBandit
-from ..agents.ekf_orig_diag import DiagonalNeuralBandit
-from ..agents.ekf_orig_full import EKFNeuralBandit
-from ..agents.diagonal_subspace import DiagonalSubspaceNeuralBandit
-from ..agents.limited_memory_neural_linear import LimitedMemoryNeuralLinearBandit
+from agents.linear_bandit import LinearBandit
+from agents.linear_kf_bandit import LinearKFBandit
+from agents.linear_bandit_wide import LinearBanditWide
+from agents.ekf_subspace import SubspaceNeuralBandit
+from agents.ekf_orig_diag import DiagonalNeuralBandit
+from agents.ekf_orig_full import EKFNeuralBandit
+from agents.diagonal_subspace import DiagonalSubspaceNeuralBandit
+from agents.limited_memory_neural_linear import LimitedMemoryNeuralLinearBandit
 
 from .training_utils import train, MLP, summarize_results
 from .mnist_exp import mapping, method_ordering
@@ -26,9 +26,9 @@ def main(config):
     shuttle_key, covetype_key, adult_key, stock_key = split(key, 4)
     ntrain = 5000
 
-    shuttle_env = TabularEnvironment(shuttle_key, ntrain=ntrain, name='statlog', intercept=False)
-    covertype_env = TabularEnvironment(covetype_key, ntrain=ntrain, name='covertype', intercept=False)
-    adult_env = TabularEnvironment(adult_key, ntrain=ntrain, name='adult', intercept=False)
+    shuttle_env = TabularEnvironment(shuttle_key, ntrain=ntrain, name='statlog', intercept=False, path="../bandit-data")
+    covertype_env = TabularEnvironment(covetype_key, ntrain=ntrain, name='covertype', intercept=False, path="../bandit-data")
+    adult_env = TabularEnvironment(adult_key, ntrain=ntrain, name='adult', intercept=False, path="../bandit-data")
     environments = {"shuttle": shuttle_env, "covertype": covertype_env, "adult": adult_env}
 
     # Linear & Linear Wide
@@ -144,7 +144,7 @@ def main(config):
 
                 rtotal, rstd = summarize_results(warmup_rewards, rewards_trace)
                 end = time()
-                print(f"\t\tTime : {end - start}")
+                print(f"\t\tTime : {end - start:0.3f}s")
                 results.append((env_name, bandit_name, end - start, rtotal, rstd))
 
     # initialize results given in the paper

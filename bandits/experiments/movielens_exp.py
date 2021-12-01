@@ -6,14 +6,14 @@ import pandas as pd
 import argparse
 from time import time
 
-from ..environments.movielens_env import MovielensEnvironment
+from environments.movielens_env import MovielensEnvironment
 
-from ..agents.linear_bandit import LinearBandit
-from ..agents.linear_kf_bandit import LinearKFBandit
-from ..agents.ekf_subspace import SubspaceNeuralBandit
-from ..agents.ekf_orig_diag import DiagonalNeuralBandit
-from ..agents.diagonal_subspace import DiagonalSubspaceNeuralBandit
-from ..agents.limited_memory_neural_linear import LimitedMemoryNeuralLinearBandit
+from agents.linear_bandit import LinearBandit
+from agents.linear_kf_bandit import LinearKFBandit
+from agents.ekf_subspace import SubspaceNeuralBandit
+from agents.ekf_orig_diag import DiagonalNeuralBandit
+from agents.diagonal_subspace import DiagonalSubspaceNeuralBandit
+from agents.limited_memory_neural_linear import LimitedMemoryNeuralLinearBandit
 
 from .training_utils import train, MLP, MLPWide
 from .mnist_exp import mapping, rank, summarize_results, method_ordering

@@ -1,20 +1,24 @@
+# reward = w' * phi(s,a; theta), where theta is learned
+
 import jax.numpy as jnp
-from jax import lax
+from jax import vmap
 from jax.random import split
-from jax.ops import index_update
+from jax.nn import one_hot
+from jax.lax import scan, cond
 
 import optax
 
 from flax.training import train_state
 
-from .agent_utils import train
-from ..experiments.training_utils import MLP
+from .agent_utils import NIGupdate, train
+from experiments.training_utils import  MLP
+
 from tensorflow_probability.substrates import jax as tfp
 
 tfd = tfp.distributions
 
 
-class NeuralLinearBandit:
+class NeuralLinearBanditWide:
     def __init__(self, num_features, num_arms, model=None, opt=optax.adam(learning_rate=1e-2), eta=6.0, lmbda=0.25,
                  update_step_mod=100, batch_size=5000, nepochs=3000):
         self.num_features = num_features
@@ -27,6 +31,7 @@ class NeuralLinearBandit:
                 self.model = model()
             except:
                 self.model = model
+
         self.opt = opt
         self.eta = eta
         self.lmbda = lmbda
@@ -35,13 +40,14 @@ class NeuralLinearBandit:
         self.nepochs = nepochs
 
     def init_bel(self, key, contexts, states, actions, rewards):
+
         key, mykey = split(key)
         initial_params = self.model.init(mykey, jnp.zeros((self.num_features,)))
         initial_train_state = train_state.TrainState.create(apply_fn=self.model.apply, params=initial_params,
                                                             tx=self.opt)
 
         mu = jnp.zeros((self.num_arms, 500))
-        Sigma = 1 / self.lmbda * jnp.eye(500) * jnp.ones((self.num_arms, 1, 1))
+        Sigma = 1 * self.lmbda * jnp.eye(500) * jnp.ones((self.num_arms, 1, 1))
         a = self.eta * jnp.ones((self.num_arms,))
         b = self.eta * jnp.ones((self.num_arms,))
         t = 0
@@ -51,63 +57,41 @@ class NeuralLinearBandit:
             return self.update_bel(bel, context, action, reward), None
 
         initial_bel = (mu, Sigma, a, b, initial_train_state, t)
+        X = vmap(self.widen)(contexts)(actions)
         self.init_contexts_and_states(contexts, states)
-        bel, _ = lax.scan(update, initial_bel, (contexts, actions, rewards))
+        (bel, key), _ = scan(update, initial_bel, (contexts, actions, rewards))
         return bel
 
     def featurize(self, params, x, feature_layer="last_layer"):
         _, inter = self.model.apply(params, x, capture_intermediates=True)
         Phi, *_ = inter["intermediates"][feature_layer]["__call__"]
-        return Phi.squeeze()
+        return Phi
+
+    def widen(self, context, action):
+        phi = jnp.zeros((self.num_arms, self.num_features))
+        phi[action] = context
+        return phi.flatten()
 
     def cond_update_params(self, t):
         return (t % self.update_step_mod) == 0
 
-    def init_contexts_and_states(self, contexts, states):
-        self.contexts = contexts
-        self.states = states
+    def init_contexts_and_states(self, contexts, states, actions, rewards):
+        self.X = vmap(self.widen)(contexts)(actions)
+        self.Y = rewards
 
     def update_bel(self, bel, context, action, reward):
-        mu, Sigma, a, b, state, t = bel
 
+        _, _, _, _, state, t = bel
         sgd_params = (state, t)
 
-        def loss_fn(self, params):
-            n_samples, *_ = self.contexts.shape
-            final_t = lax.cond(t == 0, lambda t: n_samples, lambda t: t.astype(int), t)
-            sample_range = (jnp.arange(n_samples) <= t)[:, None]
+        phi = self.widen(self, context, action)
+        state = cond(self.cond_update_params(t),
+                     lambda sgd_params: train(self.model, sgd_params[0], phi, reward,
+                                              nepochs=self.nepochs, t=sgd_params[1]),
+                     lambda sgd_params: sgd_params[0], sgd_params)
+        lin_bel = NIGupdate(bel, phi, reward)
+        bel = (*lin_bel, state, t + 1)
 
-            pred_reward = self.model.apply({"params": params}, self.contexts)
-            loss = (optax.l2_loss(pred_reward, self.states) * sample_range).sum() / final_t
-            return loss, pred_reward
-
-        state = lax.cond(self.cond_update_params(t),
-                         lambda sgd_params: train(sgd_params[0], loss_fn=loss_fn, nepochs=self.nepochs)[0],
-                         lambda sgd_params: sgd_params[0], sgd_params)
-
-        transformed_context = self.featurize(state.params, context)
-
-        mu_k, Sigma_k = mu[action], Sigma[action]
-        Lambda_k = jnp.linalg.inv(Sigma_k)
-        a_k, b_k = a[action], b[action]
-
-        # weight params
-        Lambda_update = jnp.outer(transformed_context, transformed_context) + Lambda_k
-        Sigma_update = jnp.linalg.inv(Lambda_update)
-        mu_update = Sigma_update @ (Lambda_k @ mu_k + transformed_context * reward)
-
-        # noise params
-        a_update = a_k + 1 / 2
-        b_update = b_k + (reward ** 2 + mu_k.T @ Lambda_k @ mu_k - mu_update.T @ Lambda_update @ mu_update) / 2
-
-        # update only the chosen action at time t
-        mu = index_update(mu, action, mu_update)
-        Sigma = index_update(Sigma, action, Sigma_update)
-        a = index_update(a, action, a_update)
-        b = index_update(b, action, b_update)
-        t = t + 1
-
-        bel = (mu, Sigma, a, b, state, t)
         return bel
 
     def sample_params(self, key, bel):
@@ -119,11 +103,16 @@ class NeuralLinearBandit:
         return w
 
     def choose_action(self, key, bel, context):
-        # Thompson sampling strategy
-        # Could also use epsilon greedy or UCB
-        state = bel[-2]
-        context_transformed = self.featurize(state.params, context)
         w = self.sample_params(key, bel)
-        predicted_reward = jnp.einsum("m,km->k", context_transformed, w)
-        action = predicted_reward.argmax()
+
+        def get_reward(action):
+            reward = one_hot(action, self.num_arms)
+            phi = self.widen(context, reward)
+            reward = phi * w
+            return reward
+
+        actions = jnp.arange(self.num_arms)
+        rewards = vmap(get_reward)(actions)
+        action = jnp.argmax(rewards)
+
         return action

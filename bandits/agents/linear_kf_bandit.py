@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from jax.ops import index_update
 from jax.lax import scan
 from jax.random import split
-from ..nlds_lib.lds_lib_orig import KalmanFilterNoiseEstimation
+from nlds_lib.lds_lib_orig import KalmanFilterNoiseEstimation
 from tensorflow_probability.substrates import jax as tfp
 
 tfd = tfp.distributions

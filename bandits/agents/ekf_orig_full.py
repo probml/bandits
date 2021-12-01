@@ -7,8 +7,8 @@ import optax
 from flax.training import train_state
 
 from .agent_utils import train
-from ..nlds_lib.extended_kalman_filter import ExtendedKalmanFilter
-from ..experiments.training_utils import MLP
+from nlds_lib.extended_kalman_filter import ExtendedKalmanFilter
+from experiments.training_utils import MLP
 from tensorflow_probability.substrates import jax as tfp
 
 tfd = tfp.distributions

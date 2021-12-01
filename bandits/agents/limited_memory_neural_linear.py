@@ -10,7 +10,7 @@ import optax
 from flax.training import train_state
 
 from .agent_utils import train
-from ..experiments.training_utils import MLP
+from experiments.training_utils import MLP
 from tensorflow_probability.substrates import jax as tfp
 
 tfd = tfp.distributions

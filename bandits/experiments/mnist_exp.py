@@ -6,14 +6,14 @@ from time import time
 
 import pandas as pd
 
-from ..environments.mnist_env import MnistEnvironment
+from environments.mnist_env import MnistEnvironment
 
-from ..agents.linear_bandit import LinearBandit
-from ..agents.linear_kf_bandit import LinearKFBandit
-from ..agents.ekf_subspace import SubspaceNeuralBandit
-from ..agents.ekf_orig_diag import DiagonalNeuralBandit
-from ..agents.diagonal_subspace import DiagonalSubspaceNeuralBandit
-from ..agents.limited_memory_neural_linear import LimitedMemoryNeuralLinearBandit
+from agents.linear_bandit import LinearBandit
+from agents.linear_kf_bandit import LinearKFBandit
+from agents.ekf_subspace import SubspaceNeuralBandit
+from agents.ekf_orig_diag import DiagonalNeuralBandit
+from agents.diagonal_subspace import DiagonalSubspaceNeuralBandit
+from agents.limited_memory_neural_linear import LimitedMemoryNeuralLinearBandit
 
 from .training_utils import train, MLP, MLPWide, LeNet5, summarize_results
 

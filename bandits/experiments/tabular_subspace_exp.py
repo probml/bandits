@@ -6,8 +6,8 @@ import pandas as pd
 import argparse
 from time import time
 
-from ..environments.tabular_env import TabularEnvironment
-from ..agents.ekf_subspace import SubspaceNeuralBandit
+from environments.tabular_env import TabularEnvironment
+from agents.ekf_subspace import SubspaceNeuralBandit
 
 from .training_utils import train, MLP, summarize_results
 from .mnist_exp import mapping, method_ordering
