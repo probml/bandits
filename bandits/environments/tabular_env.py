@@ -177,7 +177,7 @@ def get_tabular_data_from_pkl(name, path):
     return contexts, actions, opt_rewards
 
 
-def TabularEnvironment(key, name, ntrain=0, intercept=True, load_from="pkl", path="bandit-data"):
+def TabularEnvironment(key, name, ntrain=0, intercept=True, load_from="pkl", path="../bandit-data"):
     if load_from == "url":
         X, y, opt_rewards = get_tabular_data_from_openml(name)
     elif load_from == "openml":

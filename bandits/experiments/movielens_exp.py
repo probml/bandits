@@ -115,7 +115,7 @@ def main(config):
                                                                    config.ntrials, properties["kwargs"], neural=False)
                 rtotal, rstd = summarize_results(warmup_rewards, rewards_trace, spacing="\t")
                 end = time()
-                print(f"\tTime : {end - start}")
+                print(f"\tTime : {end - start}:0.3f")
                 results.append((bandit_name, model_name, end - start, rtotal, rstd))
 
     df = pd.DataFrame(results)
