@@ -9,4 +9,4 @@ URL: https://arxiv.org/abs/2112.00195
 
 ## Reproduce the results
 
-To reproduce the figures, simply run the file [`run_experiments.ipynb`](https://github.com/probml/bandits/blob/main/bandits/experiments/run_experiments.ipynb) top to bottom.
+To reproduce the results, simply open and run [`run_experiments.ipynb`](https://github.com/probml/bandits/blob/main/bandits/experiments/run_experiments.ipynb) top to bottom. Once execution is complete, open and run [`plot_figures.ipynb`](https://github.com/probml/bandits/blob/main/bandits/experiments/plot_figures.ipynb) top to bottom to reproduce the plots.
