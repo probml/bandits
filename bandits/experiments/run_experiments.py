@@ -1,6 +1,7 @@
 import sys
 sys.path.append("./bandits/")
 
+
 import jax
 import ml_collections
 import glob
@@ -10,6 +11,8 @@ import experiments.mnist_exp as mnist_run
 import experiments.tabular_exp as tabular_run
 import experiments.tabular_subspace_exp as tabular_sub_run
 
+import os
+os.chdir("./bandits/")
 
 def make_config(filepath):
   """Get the default hyperparameter configuration."""
