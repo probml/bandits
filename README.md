@@ -9,13 +9,24 @@ URL: https://arxiv.org/abs/2112.00195
 
 ## Reproduce the results
 
+There are two ways to reproduce the results from the paper
+
+### Run the scripts
+
 To reproduce the results, `cd` into the project folder and run
 
 ```bash
 python bandits/experiments/run_experiments.py
 ```
 
-Once execution is complete, open and run [`plot_figures.ipynb`](https://github.com/probml/bandits/blob/main/bandits/experiments/plot_figures.ipynb) top to bottom to reproduce the plots.
+Once execution is complete, run the script
 
+```bash
+python bandits/experiments/plot_results.py
+```
 
-An alternative way to reproduce the results is to simply open and run [`run_experiments.ipynb`](https://github.com/probml/bandits/blob/main/bandits/experiments/run_experiments.ipynb) top to bottom. 
+The results will be stored inside `bandits/figures/`.
+
+### Execute the notebooks
+
+An alternative way to reproduce the results is to simply open and run [`subspace_bandits.ipynb`](https://github.com/probml/bandits/blob/main/bandits/experiments/subspace_bandits.ipynb) 
