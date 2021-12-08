@@ -11,8 +11,6 @@
 
 # Author: Gerardo Durán-Martín (@gerdm)
 
-import superimport
-
 import jax
 from jax.random import split, multivariate_normal
 
