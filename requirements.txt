@@ -33,6 +33,7 @@ PyYAML==6.0
 requests==2.26.0
 scikit-learn==1.0.1
 scipy==1.7.3
+seaborn==0.11.2
 setuptools-scm==6.3.2
 six==1.16.0
 tfp-nightly==0.16.0.dev20211208
