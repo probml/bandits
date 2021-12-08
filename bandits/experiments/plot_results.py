@@ -115,7 +115,11 @@ plot_configs = [
 
 ]
 
+
+# Create reward / runnnig time experiments
+print("Plotting reward / running time")
 for dataset_name in dataset_info:
+    print(dataset_name)
     info = dataset_info[dataset_name]
     methods = info["elements"]
     x = info["x"]
@@ -129,3 +133,15 @@ for dataset_name in dataset_info:
 
         filename = f"{dataset_name}_{metric.lower()}"
         plot_figure(df, x, metric, filename, log_scale=use_log_scale)
+
+
+# Plot subspace-dim v.s. reward
+print("Plotting subspace dim v.s. reward")
+*_, filename = sorted(glob.glob(f"./results/tabular_subspace_results*.csv"))
+tabular_sub_df = pd.read_csv(filename)
+
+datasets = ["shuttle", "adult", "covertype"]
+for dataset_name in datasets:
+    print(dataset_name)
+    subdf = tabular_sub_df.query("Dataset == @dataset_name")
+    plot_subspace_figure(subdf)
