@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./bandits/")
+
 import jax
 import ml_collections
 import glob
@@ -22,12 +25,10 @@ def main():
     experiments_name = ["tabular", "mnist", "movielens", "tabular_subspace"]
 
     for experiment_run, experiment_name in zip(experiments, experiments_name):
-        filename = f"./results{experiment}_results_{timestamp}.csv"
+        filename = f"./results{experiment_name}_results_{timestamp}.csv"
         config = make_config(filename)
         experiment_run.main(config)
     
 
 if __name__ == "__main__":
-    import os
-    os.chdir("..")
     main()
