@@ -109,7 +109,7 @@ def run_bandit(key, bandit, bel, env, warmup, nsteps, neural=True):
     return contexts, actions, rewards
 
 
-def summarize_results(warmup_rewards, rewards, spacing="\t\t"):
+def summarize_results(warmup_rewards, rewards):
     """
     Print a summary of running a Bandit algorithm for a number of runs
     """
@@ -119,5 +119,5 @@ def summarize_results(warmup_rewards, rewards, spacing="\t\t"):
     r_std = rewards.std()
     r_total = r_mean + warmup_reward
 
-    print(f"{spacing}Expected Reward : {r_total:0.2f} ± {r_std:0.2f}")
+    print(f"Expected Reward : {r_total:0.2f} ± {r_std:0.2f}")
     return r_total, r_std
