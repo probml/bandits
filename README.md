@@ -21,13 +21,13 @@ python bandits run_and_plot
 
 ### Step by step
 
-First run.
+If you only want to reproduce the results, run
 
 ```bash
 python bandits run_experiments
 ```
 
-Once execution is complete, run
+If you have previously reproduced the results and want to reproduce the plots, run
 
 ```bash
 python bandits plot_experiments
