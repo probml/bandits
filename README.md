@@ -29,4 +29,4 @@ The results will be stored inside `bandits/figures/`.
 
 ### Execute the notebooks
 
-An alternative way to reproduce the results is to simply open and run [`subspace_bandits.ipynb`](https://github.com/probml/bandits/blob/main/bandits/experiments/subspace_bandits.ipynb) 
+An alternative way to reproduce the results is to simply open and run [`subspace_bandits.ipynb`](https://github.com/probml/bandits/blob/main/bandits/scripts/subspace_bandits.ipynb) 
