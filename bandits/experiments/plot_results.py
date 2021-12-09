@@ -3,9 +3,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-import os
-os.chdir("./bandits")
-
 def plot_figure(data, x, y, filename, figsize=(24, 9), log_scale=False):   
     sns.set(font_scale=1.5)
     plt.style.use("seaborn-poster")
@@ -16,11 +13,11 @@ def plot_figure(data, x, y, filename, figsize=(24, 9), log_scale=False):
         g.set_yscale("log")
     plt.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0))
     plt.tight_layout()
-    plt.savefig(f"./figures/{filename}.png")
+    plt.savefig(f"./bandits/figures/{filename}.png")
     plt.show()
 
 def read_data(dataset_name):
-    *_, filename = sorted(glob.glob(f"./results/{dataset_name}_results*.csv"))
+    *_, filename = sorted(glob.glob(f"./bandits/results/{dataset_name}_results*.csv"))
     df = pd.read_csv(filename)
     if dataset_name=="mnist":
         linear_df = df[(df["Method"]=="Lin-KF") | (df["Method"]=="Lin")].copy()
@@ -63,7 +60,7 @@ def plot_subspace_figure(df, filename=None):
     frame.set_color('white')
     frame.set_alpha(0.6)
     
-    file_path = "./figures/"
+    file_path = "./bandits/figures/"
     file_path = file_path + f"{dataset}_sub_reward.png" if filename is None else file_path + f"{filename}.png"
     plt.savefig(file_path)
 
@@ -138,7 +135,7 @@ def main():
 
     # Plot subspace-dim v.s. reward
     print("Plotting subspace dim v.s. reward")
-    *_, filename = sorted(glob.glob(f"./results/tabular_subspace_results*.csv"))
+    *_, filename = sorted(glob.glob(f"./bandits/results/tabular_subspace_results*.csv"))
     tabular_sub_df = pd.read_csv(filename)
 
     datasets = ["shuttle", "adult", "covertype"]
