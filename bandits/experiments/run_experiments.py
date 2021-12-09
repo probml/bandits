@@ -1,15 +1,12 @@
-import sys
-sys.path.append("./bandits/")
-
-
 import jax
 import ml_collections
 import glob
 from datetime import datetime
-import experiments.movielens_exp as movielens_run
-import experiments.mnist_exp as mnist_run
-import experiments.tabular_exp as tabular_run
-import experiments.tabular_subspace_exp as tabular_sub_run
+
+from . import movielens_exp as movielens_run
+from . import mnist_exp as mnist_run
+from . import tabular_exp as tabular_run
+from . import tabular_subspace_exp as tabular_sub_run
 
 def make_config(filepath):
   """Get the default hyperparameter configuration."""
@@ -31,6 +28,4 @@ def main():
     
 
 if __name__ == "__main__":
-    import os
-    os.chdir("./bandits/")
     main()
