@@ -148,12 +148,16 @@ def main(config):
                 results.append((env_name, bandit_name, end - start, rtotal, rstd))
 
     # initialize results given in the paper
-
+    # running time, mean, and std values for Lim2.
+    # We obtained these values by running the following code:
+    # https://github.com/ofirnabati/Neural-Linear-Bandits-with-Likelihood-Matching
+    # set to the parameters presented in the paper: https://arxiv.org/abs/2102.03799
     lim2data = [["shuttle", "Lim2", 42.20236960171787, 4826.4, 319.82351111111],
                 ["covertype", "Lim2", 124.96883611524915, 2660.7, 333.93744444444],
                 ["adult", "Lim2", 34.89770766110576, 3985.5, 113.127926],
                 ]
 
+    # Values obtained from appendix B of https://arxiv.org/abs/2102.03799
     neuraltsdata = [
         ["shuttle", "NeuralTS", 0.0, 4348, 265],
         ["covertype", "NeuralTS", 0.0, 1877, 83],
