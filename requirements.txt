@@ -7,6 +7,7 @@ contextlib2==21.6.0
 cycler==0.11.0
 decorator==5.1.0
 dm-tree==0.1.6
+fire==0.4.0
 flatbuffers==2.0
 flax==0.3.6
 fonttools==4.28.3
@@ -36,6 +37,7 @@ scipy==1.7.3
 seaborn==0.11.2
 setuptools-scm==6.3.2
 six==1.16.0
+termcolor==1.1.0
 tfp-nightly==0.16.0.dev20211208
 threadpoolctl==3.0.0
 tomli==1.2.2
