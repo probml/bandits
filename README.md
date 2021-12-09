@@ -16,13 +16,21 @@ There are two ways to reproduce the results from the paper
 To reproduce the results, `cd` into the project folder and run
 
 ```bash
-python bandits/experiments/run_experiments.py
+python bandits run_and_plot
 ```
 
-Once execution is complete, run the script
+### Step by step
+
+First run.
 
 ```bash
-python bandits/experiments/plot_results.py
+python bandits run_experiments
+```
+
+Once execution is complete, run
+
+```bash
+python bandits plot_experiments
 ```
 
 The results will be stored inside `bandits/figures/`.
