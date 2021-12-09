@@ -26,9 +26,9 @@ def main(config):
     shuttle_key, covetype_key, adult_key, stock_key = split(key, 4)
     ntrain = 5000
 
-    shuttle_env = TabularEnvironment(shuttle_key, ntrain=ntrain, name='statlog', intercept=False, path="../bandit-data")
-    covertype_env = TabularEnvironment(covetype_key, ntrain=ntrain, name='covertype', intercept=False, path="../bandit-data")
-    adult_env = TabularEnvironment(adult_key, ntrain=ntrain, name='adult', intercept=False, path="../bandit-data")
+    shuttle_env = TabularEnvironment(shuttle_key, ntrain=ntrain, name='statlog', intercept=False, path="./bandit-data")
+    covertype_env = TabularEnvironment(covetype_key, ntrain=ntrain, name='covertype', intercept=False, path="./bandit-data")
+    adult_env = TabularEnvironment(adult_key, ntrain=ntrain, name='adult', intercept=False, path="./bandit-data")
     environments = {"shuttle": shuttle_env, "covertype": covertype_env, "adult": adult_env}
 
     # Linear & Linear Wide

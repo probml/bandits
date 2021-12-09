@@ -6,7 +6,7 @@ import optax
 from flax.training import train_state
 
 from .agent_utils import train
-from experiments.training_utils import MLP
+from scripts.training_utils import MLP
 from nlds_lib.diagonal_extended_kalman_filter import DiagonalExtendedKalmanFilter
 
 from tensorflow_probability.substrates import jax as tfp

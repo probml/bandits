@@ -1,7 +1,7 @@
 import fire
-from experiments import plot_results
-from experiments import run_experiments
-from experiments import tabular_test
+from scripts import plot_results
+from scripts import run_experiments
+from scripts import tabular_test
 
 
 class Experiments:

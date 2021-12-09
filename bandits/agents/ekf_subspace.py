@@ -6,7 +6,7 @@ from jax.flatten_util import ravel_pytree
 from flax.training import train_state
 from sklearn.decomposition import PCA
 from .agent_utils import train, generate_random_basis, convert_params_from_subspace_to_full
-from experiments.training_utils import MLP
+from scripts.training_utils import MLP
 from nlds_lib.extended_kalman_filter import ExtendedKalmanFilter
 from tensorflow_probability.substrates import jax as tfp
 
