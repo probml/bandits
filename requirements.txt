@@ -44,3 +44,4 @@ tomli>=1.2.2
 toolz>=0.11.2
 typing_extensions>=4.0.1
 urllib3>=1.26.7
+jsl @ git+git://github.com/probml/jsl@8c35b11bb11f83218e1958d5ad9f32b48e546595
