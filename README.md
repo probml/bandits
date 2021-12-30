@@ -16,6 +16,10 @@ There are two ways to reproduce the results from the paper
 To reproduce the results, `cd` into the project folder and run
 
 ```bash
+python bandits test
+```
+
+```bash
 python bandits run_and_plot
 ```
 
