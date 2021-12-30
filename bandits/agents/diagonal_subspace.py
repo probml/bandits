@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from nlds_lib.diagonal_extended_kalman_filter import DiagonalExtendedKalmanFilter
+from jsl.nlds.diagonal_extended_kalman_filter import DiagonalExtendedKalmanFilter
 from .ekf_subspace import SubspaceNeuralBandit
 from tensorflow_probability.substrates import jax as tfp
 
