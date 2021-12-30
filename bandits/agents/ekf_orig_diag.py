@@ -7,7 +7,7 @@ from flax.training import train_state
 
 from .agent_utils import train
 from scripts.training_utils import MLP
-from nlds_lib.diagonal_extended_kalman_filter import DiagonalExtendedKalmanFilter
+from jsl.nlds.diagonal_extended_kalman_filter import DiagonalExtendedKalmanFilter
 
 from tensorflow_probability.substrates import jax as tfp
 
