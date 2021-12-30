@@ -7,6 +7,13 @@ URL: https://arxiv.org/abs/2112.00195
 
 -----
 
+## Installation
+
+```
+pip install fire
+pip install ml-collections
+```
+
 ## Reproduce the results
 
 There are two ways to reproduce the results from the paper
