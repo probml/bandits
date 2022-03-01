@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+
+\usepackage{bm}
+\usepackage{tikz-cd}
+
+\begin{document}
+% https://tikzcd.yichuanshen.de/#N4Igdg9gJgpgziAXAbVABwnAlgFyxMJZARgBoAGAXVJADcBDAGwFcYkRgAdTgIwDMABAC8AvgH1gOALTERIEaXSZc+QigBMFanSat2XXoNFic8xSAzY8BImWLaGLNohDceERlDgBPALbvGbhwACxgceglpWTMlK1UiTXsaRz0XNw8vPwCg0PDIuQVYlRsUMnUHXWcQACdImQLzS2K1ZE1y5Mr2WtNCi2VrFvJSAGYKp303QThxSXqYvriSkhGx1JAI2ejepoGElY7xlwiexv74lGH9nUOOSYFp-Pmd8+QhqgO1g34BAEEGot2KCG7Wua3Snh8-g8OTCEQAVPJtDAoABzeBEUB8aoQXxIIYgHAQJBkUHOMDMRiMGiMeg8GCMAAKZxKIEYMD4J0x2NxiHxhKQ6l6WJxxJo-MQwyF3KQABYxUTEILzMKeQBWeVISXK6WIADsGsQMqlIsQADYDUbtSaABwG1XGnkATjtDuJfIVSq5JuI7s1rsQxBJ4s9IBVxKDCsllBEQA
+\begin{tikzcd}
+{\bf A} \arrow[rd] \arrow[rrd] & {\bf z}_{t-1} \arrow[r] \arrow[d] & {\bf z}_t \arrow[d]   & \\
+& \boldsymbol\theta_{t-1} & \boldsymbol\theta_{t} & \\
+\boldsymbol\theta_* \arrow[ru] \arrow[rru] & r_{t-1} \arrow[u]                 & r_t \arrow[u]  & \\
+{\bf s}_{t-1} \arrow[ru] & a_{t-1} \arrow[u] & a_t \arrow[u]  & {\bf s}_{t} \arrow[lu]
+\end{tikzcd}
+\end{document}

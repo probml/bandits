@@ -1,0 +1,9 @@
+*.pdf
+node_modules
+.DS_Store
+dist
+*.local
+index.html
+.remote-assets
+components.d.ts
+.texpadtmp
