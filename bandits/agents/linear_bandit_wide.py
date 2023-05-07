@@ -10,7 +10,6 @@ import jax.numpy as jnp
 from jax import vmap
 from jax.random import split
 from jax.nn import one_hot
-from jax.ops import index_update
 from jax.lax import scan
 
 from .agent_utils import NIGupdate
@@ -29,7 +28,7 @@ class LinearBanditWide:
 
     def widen(self, context, action):
         phi = jnp.zeros((self.num_arms, self.num_features))
-        phi = index_update(phi, action, context)
+        phi = phi.at[action].set(context)
         return phi.flatten()
 
     def init_bel(self, key, contexts, states, actions, rewards):

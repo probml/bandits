@@ -1,7 +1,6 @@
 import jax.numpy as jnp
 from jax import lax
 from jax import random
-from jax.ops import index_update
 
 from tensorflow_probability.substrates import jax as tfp
 
@@ -47,11 +46,11 @@ class LinearBandit:
         b_update = b_k + (reward ** 2 + mu_k.T @ Lambda_k @ mu_k - mu_update.T @ Lambda_update @ mu_update) / 2
 
         # Update only the chosen action at time t
-        mu = index_update(mu, action, mu_update)
-        Sigma = index_update(Sigma, action, Sigma_update)
-        a = index_update(a, action, a_update)
-        b = index_update(b, action, b_update)
-
+        mu  = mu.at[action].set(mu_update)
+        Sigma = Sigma.at[action].set(Sigma_update)
+        a = a.at[action].set(a_update)
+        b = b.at[action].set(b_update)
+ 
         bel = (mu, Sigma, a, b)
 
         return bel

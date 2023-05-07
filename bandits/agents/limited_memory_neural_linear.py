@@ -3,7 +3,6 @@ from jax import jit
 from jax.random import split
 from jax.lax import scan, cond
 from jax.nn import one_hot
-from jax.ops import index_update
 
 import optax
 
@@ -87,7 +86,7 @@ class LimitedMemoryNeuralLinearBandit:
         """
         source: https://github.com/google/jax/issues/4590
         """
-        buffer = index_update(buffer, index, new_item)
+        buffer = buffer.at[index].set(new_item)
         index = (index + 1) % self.buffer_size
         return buffer, index
 
@@ -143,10 +142,10 @@ class LimitedMemoryNeuralLinearBandit:
         b_update = b_k + (reward ** 2 + mu_k.T @ Lambda_k @ mu_k - mu_update.T @ Lambda_update @ mu_update) / 2
 
         # update only the chosen action at time t
-        mu = index_update(mu, action, mu_update)
-        Sigma = index_update(Sigma, action, Sigma_update)
-        a = index_update(a, action, a_update)
-        b = index_update(b, action, b_update)
+        mu = mu.at[action].set(mu_update)
+        Sigma = Sigma.at[action].set(Sigma_update)
+        a = a.at[action].set(a_update)
+        b = b.at[action].set(b_update)
         t = t + 1
 
         buffer = (context_buffer, reward_buffer, action_buffer, buffer_ix)

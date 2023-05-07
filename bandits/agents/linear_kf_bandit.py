@@ -1,5 +1,4 @@
 import jax.numpy as jnp
-from jax.ops import index_update
 from jax.lax import scan
 from jax.random import split
 from jsl.lds.kalman_filter import KalmanFilterNoiseEstimation
@@ -46,10 +45,10 @@ class LinearKFBandit:
 
         mu_k, Sigma_k, v_k, tau_k = self.kf.kalman_step(state, xs)
 
-        mu = index_update(mu, action, mu_k)
-        Sigma = index_update(Sigma, action, Sigma_k)
-        v = index_update(v, action, v_k)
-        tau = index_update(tau, action, tau_k)
+        mu = mu.at[action].set(mu_k)
+        Sigma = Sigma.at[action].set(Sigma_k)
+        v = v.at[action].set(v_k)
+        tau = tau.at[action].set(tau_k)
 
         bel = (mu, Sigma, v, tau)
 
