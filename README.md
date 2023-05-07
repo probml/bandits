@@ -1,7 +1,11 @@
 # Efficient Online Bayesian Inference for Neural Bandits
 
-By [Gerardo Durán-Martín](http://github.com/gerdm), [Aleyna Kara](https://github.com/karalleyna), and [Kevin Murphy](https://github.com/murphyk)  
-AISTATS 2022. 
+**🚨Breaking changes🚨**  
+See [aistats2022 release](https://github.com/probml/bandits/releases/tag/aistats2022) For a [JSL@ceeef0](https://github.com/probml/JSL/commit/ceeef0f02b185c7188afb40b977a9406d97c21ba) and `jax<=0.2.22` compatible version.
+
+----
+
+By [Gerardo Durán-Martín](http://github.com/gerdm), [Aleyna Kara](https://github.com/karalleyna), and [Kevin Murphy](https://github.com/murphyk) 
 
 [Arxiv paper](https://arxiv.org/abs/2112.00195).
 
