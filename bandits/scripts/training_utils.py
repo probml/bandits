@@ -71,7 +71,6 @@ def train(key, bandit_cls, env, npulls, ntrials, bandit_kwargs, neural=True):
     if ntrials > 1:
         keys = split(key, ntrials)
         rewards_trace = vmap(single_trial)(keys)
-        # rewards_trace = vmap(single_trial)(keys)
     else:
         rewards_trace = single_trial(key)
 
