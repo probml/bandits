@@ -26,7 +26,7 @@ class SubspaceNeuralBandit:
             The environment to be used.
         model : flax.nn.Module
             The flax model to be used for the bandits. Note that this model is independent of the
-            model architecture. The only constraint is that the last layer should have the same 
+            model architecture. The only constraint is that the last layer should have the same
             number of outputs as the number of arms.
         opt: flax.optim.Optimizer
             The optimizer to be used for training the model.
@@ -40,6 +40,7 @@ class SubspaceNeuralBandit:
         self.num_features = num_features
         self.num_arms = num_arms
 
+        # TODO: deprecate hard-coded MLP
         if model is None:
             self.model = MLP(500, num_arms)
         else:
