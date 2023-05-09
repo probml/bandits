@@ -22,16 +22,20 @@ class LowRankFilterBandit:
         self.initial_covariance = initial_covariance
         self.dynamics_weights = dynamics_weights
         self.dynamics_covariance = dynamics_covariance
-
-
+    
     def init_bel(self, key, contexts, states, actions, rewards):
         _, dim_in = contexts.shape
         params = self.model.init(key, jnp.ones((1, dim_in)))
         flat_params, recfn = ravel_pytree(params)
 
-        def apply_fn(flat_params, x):
-            return self.model.apply(recfn(flat_params), x)
+        def apply_fn(flat_params, xs):
+            context, action = xs
+            return self.model.apply(recfn(flat_params), context)[action, None]
+        
 
+        def predict_rewards(flat_params, context):
+            return self.model.apply(recfn(flat_params), context)
+        
         lofi_params = lofi.LoFiParams(
             initial_mean=flat_params,
             initial_covariance=self.initial_covariance,
@@ -49,6 +53,7 @@ class LowRankFilterBandit:
         agent = lofi.RebayesLoFiDiagonal(lofi_params)
         bel = agent.init_bel()
         self.agent = agent
+        self.predict_rewards = predict_rewards
 
         return bel
     
@@ -58,7 +63,12 @@ class LowRankFilterBandit:
         return params_samp
     
     def update_bel(self, bel, context, action, reward):
-        ...
+        xs = (context, action)
+        bel = self.agent.update_state(bel, xs, reward)
+        return bel
 
     def choose_action(self, key, bel, context):
-        ...
+        params = self.sample_params(key, bel)
+        predicted_rewards = self.predict_rewards(params, context) 
+        action = predicted_rewards.argmax()
+        return action
