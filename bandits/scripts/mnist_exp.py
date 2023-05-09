@@ -29,7 +29,9 @@ method_ordering = {"EKF-Sub-SVD": 0,
                    "Lin-KF": 9,
                    "Lin-Wide": 9,
                    "Lim2": 10,
-                   "NeuralTS": 11}
+                   "NeuralTS": 11,
+                   "LoFi": 12
+                   }
 
 rank = {"MLP1": 0, "MLP2": 1, "LeNet5": 2}
 
@@ -46,7 +48,8 @@ mapping = {
     "Unlimited Neural Linear": "NL-Unlim",
     "Limited Neural Linear": "NL-Lim",
     "NeuralTS": "NeuralTS",
-    "EKF Orig Diagonal": "EKF-Orig-Diag"
+    "EKF Orig Diagonal": "EKF-Orig-Diag",
+    "LoFi": "LoFi",
 }
 
 

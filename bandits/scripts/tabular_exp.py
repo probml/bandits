@@ -15,6 +15,7 @@ from agents.ekf_orig_diag import DiagonalNeuralBandit
 from agents.ekf_orig_full import EKFNeuralBandit
 from agents.diagonal_subspace import DiagonalSubspaceNeuralBandit
 from agents.limited_memory_neural_linear import LimitedMemoryNeuralLinearBandit
+from agents.low_rank_filter_bandit import LowRankFilterBandit
 
 from .training_utils import train, MLP, summarize_results
 from .mnist_exp import mapping, method_ordering
@@ -85,9 +86,32 @@ def main(config):
     momentum = 0.9
     observation_noise = 0.01
 
-    ekf_orig = {"opt": optax.sgd(learning_rate, momentum), "prior_noise_variance": prior_noise_variance,
-                "nwarmup": nwarmup, "nepochs": nepochs,
-                "system_noise": system_noise, "observation_noise": observation_noise}
+    ekf_orig = {
+        "opt": optax.sgd(learning_rate, momentum),
+        "prior_noise_variance": prior_noise_variance,
+        "nwarmup": nwarmup,
+        "nepochs": nepochs,
+        "system_noise": system_noise,
+        "observation_noise": observation_noise
+    }
+
+
+    # LoFi
+    emission_covariance = 0.01
+    initial_covariance = 1.0
+    dynamics_weights = 1.0
+    dynamics_covariance = 0.0
+    memory_size = 10
+
+    lofi = {
+        "emission_covariance": emission_covariance,
+        "initial_covariance": initial_covariance,
+        "dynamics_weights": dynamics_weights,
+        "dynamics_covariance": dynamics_covariance,
+        "memory_size": memory_size
+    }
+
+
 
     bandits = {"Linear": {"kwargs": linear,
                           "bandit": LinearBandit
@@ -121,7 +145,11 @@ def main(config):
                                      },
                "EKF Orig Full": {"kwargs": ekf_orig,
                                  "bandit": EKFNeuralBandit
-                                 }
+                                 },
+                "LoFi": {
+                    "kwargs": lofi,
+                    "bandit": LowRankFilterBandit
+                }
                }
 
     results = []
