@@ -14,6 +14,7 @@ from agents.ekf_subspace import SubspaceNeuralBandit
 from agents.ekf_orig_diag import DiagonalNeuralBandit
 from agents.diagonal_subspace import DiagonalSubspaceNeuralBandit
 from agents.limited_memory_neural_linear import LimitedMemoryNeuralLinearBandit
+from agents.low_rank_filter_bandit import LowRankFilterBandit
 
 from .training_utils import train, MLP, MLPWide, LeNet5, summarize_results
 
@@ -109,6 +110,23 @@ def main(config):
                 "system_noise": system_noise, "observation_noise": observation_noise}
     linear = {}
 
+
+    # LoFi
+    emission_covariance = 0.01
+    initial_covariance = 1.0
+    dynamics_weights = 1.0
+    dynamics_covariance = 0.0
+    memory_size = 10
+
+    lofi = {
+        "emission_covariance": emission_covariance,
+        "initial_covariance": initial_covariance,
+        "dynamics_weights": dynamics_weights,
+        "dynamics_covariance": dynamics_covariance,
+        "memory_size": memory_size
+    }
+
+
     bandits = {"Linear": {"kwargs": linear,
                           "bandit": LinearBandit
                           },
@@ -135,7 +153,11 @@ def main(config):
                                              },
                "EKF Orig Diagonal": {"kwargs": ekf_orig,
                                      "bandit": DiagonalNeuralBandit
-                                     }
+                                     },
+                "LoFi": {
+                    "kwargs": lofi,
+                    "bandit": LowRankFilterBandit
+                }
                }
 
     results = []
