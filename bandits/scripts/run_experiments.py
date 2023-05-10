@@ -16,12 +16,25 @@ def make_config(filepath):
   return config
 
 
-def main():
+def main(experiment=None):
     timestamp = datetime.timestamp(datetime.now())
-    experiments = [tabular_run, mnist_run, movielens_run, tabular_sub_run]
-    experiments_name = ["tabular", "mnist", "movielens", "tabular_subspace"]
 
-    for experiment_run, experiment_name in zip(experiments, experiments_name):
+    experiments = {
+        "tabular": tabular_run,
+        "mnist": mnist_run,
+        "movielens": movielens_run,
+        "tabular_subspace": tabular_sub_run
+    }
+
+    if experiment is not None:
+        print(experiment)
+        if experiment not in experiments:
+          err = f"Experiment {experiment} not found. "
+          err += f"Available experiments: {list(experiments.keys())}"
+          raise ValueError(err)
+        experiments = {experiment: experiments[experiment]}
+
+    for experiment_name, experiment_run in experiments.items():
         filename = f"./bandits/results/{experiment_name}_results_{timestamp}.csv"
         config = make_config(filename)
         experiment_run.main(config)

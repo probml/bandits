@@ -11,8 +11,8 @@ class Experiments:
     def plot_experiments(self):
         plot_results.main()
     
-    def run_experiments(self):
-        run_experiments.main()
+    def run_experiments(self, experiment=None):
+        run_experiments.main(experiment)
     
     def run_and_plot(self):
         self.run_experiments()
