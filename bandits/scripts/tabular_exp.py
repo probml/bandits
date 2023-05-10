@@ -51,14 +51,12 @@ def main(config):
     nl_lim = {"buffer_size": buffer_size, "opt": optax.sgd(learning_rate, momentum), "eta": eta, "lmbda": lmbda,
               "update_step_mod": update_step_mod, "nepochs": nepochs}
 
-    buffer_size = 5000
 
     # Neural Linear Limited
-    nl_unlim = nl_lim.copy()
-    nl_unlim["buffer_size"] = buffer_sizebuffer_size = 5000
-
+    buffer_size = 5000
     nl_unlim = nl_lim.copy()
     nl_unlim["buffer_size"] = buffer_size
+
 
     # Subspace Neural Bandit with SVD
     npulls, nwarmup = 20, 2000
