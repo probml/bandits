@@ -1,6 +1,5 @@
+import jax
 import jax.numpy as jnp
-from jax.random import split
-from jax import random, vmap
 
 
 class BanditEnvironment:
@@ -8,7 +7,7 @@ class BanditEnvironment:
         # Randomise dataset rows 
         n_obs, n_features = X.shape
 
-        new_ixs = random.choice(key, n_obs, (n_obs,), replace=False)
+        new_ixs = jax.random.choice(key, n_obs, (n_obs,), replace=False)
 
         X = jnp.asarray(X)[new_ixs]
         Y = jnp.asarray(Y)[new_ixs]
@@ -33,9 +32,9 @@ class BanditEnvironment:
         warmup_actions = jnp.arange(num_actions)
         warmup_actions = jnp.repeat(warmup_actions, num_pulls).reshape(num_actions, -1)
         actions = warmup_actions.reshape(-1, order="F").astype(jnp.int32)
-        num_warmup_actions, *_ = warmup_actions.shape
+        num_warmup_actions = len(actions)
 
-        time_steps = jnp.arange(len(actions))
+        time_steps = jnp.arange(num_warmup_actions)
 
         def get_contexts_and_rewards(t, a):
             context = self.get_context(t)
@@ -43,6 +42,6 @@ class BanditEnvironment:
             reward = self.get_reward(t, a)
             return context, state, reward
 
-        contexts, states, rewards = vmap(get_contexts_and_rewards, in_axes=(0, 0))(time_steps, actions)
+        contexts, states, rewards = jax.vmap(get_contexts_and_rewards, in_axes=(0, 0))(time_steps, actions)
 
         return contexts, states, actions, rewards
