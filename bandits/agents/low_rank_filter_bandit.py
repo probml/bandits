@@ -2,12 +2,13 @@ import jax
 import jax.numpy as jnp
 from jax.flatten_util import ravel_pytree
 from rebayes.low_rank_filter import lofi
+from bandits.agents.base import BanditAgent
 from rebayes.utils.sampling import sample_dlr_single
 from tensorflow_probability.substrates import jax as tfp
 
 tfd = tfp.distributions
 
-class LowRankFilterBandit:
+class LowRankFilterBandit(BanditAgent):
     """
     Regression bandit with low-rank filter.
     """
@@ -66,9 +67,3 @@ class LowRankFilterBandit:
         xs = (context, action)
         bel = self.agent.update_state(bel, xs, reward)
         return bel
-
-    def choose_action(self, key, bel, context):
-        params = self.sample_params(key, bel)
-        predicted_rewards = self.predict_rewards(params, context) 
-        action = predicted_rewards.argmax()
-        return action
