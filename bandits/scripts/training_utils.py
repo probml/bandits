@@ -1,14 +1,9 @@
+import jax
 import jax.numpy as jnp
-from jax import vmap
-from jax.random import split
-from jax.lax import scan
-
 import flax.linen as nn
 
 import warnings
-
 warnings.filterwarnings("ignore")
-
 
 class MLP(nn.Module):
     num_arms: int
@@ -54,13 +49,14 @@ class LeNet5(nn.Module):
 
 
 def train(key, bandit_cls, env, npulls, ntrials, bandit_kwargs, neural=True):
+    # TODO: deprecate neural flag
     nsteps, nfeatures = env.contexts.shape
     _, narms = env.labels_onehot.shape
     bandit = bandit_cls(nfeatures, narms, **bandit_kwargs)
 
     warmup_contexts, warmup_states, warmup_actions, warmup_rewards = env.warmup(npulls)
 
-    key, mykey = split(key)
+    key, mykey = jax.random.split(key)
     bel = bandit.init_bel(mykey, warmup_contexts, warmup_states, warmup_actions, warmup_rewards)
     warmup = (warmup_contexts, warmup_states, warmup_actions, warmup_rewards)
 
@@ -69,8 +65,8 @@ def train(key, bandit_cls, env, npulls, ntrials, bandit_kwargs, neural=True):
         return rewards
 
     if ntrials > 1:
-        keys = split(key, ntrials)
-        rewards_trace = vmap(single_trial)(keys)
+        keys = jax.random.split(key, ntrials)
+        rewards_trace = jax.vmap(single_trial)(keys)
     else:
         rewards_trace = single_trial(key)
 
@@ -88,18 +84,18 @@ def run_bandit(key, bandit, bel, env, warmup, nsteps, neural=True):
 
         return bel, (context, action, reward)
 
-    warmup_contexts, warmup_states, warmup_actions, warmup_rewards = warmup
+    warmup_contexts, _, warmup_actions, warmup_rewards = warmup
     nwarmup = len(warmup_rewards)
 
     steps = jnp.arange(nsteps - nwarmup) + nwarmup
-    keys = split(key, nsteps - nwarmup)
+    keys = jax.random.split(key, nsteps - nwarmup)
 
     if neural:
         bandit.init_contexts_and_states(env.contexts[steps], env.labels_onehot[steps])
         mu, Sigma, a, b, params, _ = bel
         bel = (mu, Sigma, a, b, params, 0)
 
-    _, (contexts, actions, rewards) = scan(step, bel, (keys, steps))
+    _, (contexts, actions, rewards) = jax.lax.scan(step, bel, (keys, steps))
 
     contexts = jnp.vstack([warmup_contexts, contexts])
     actions = jnp.append(warmup_actions, actions)
