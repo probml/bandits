@@ -16,6 +16,8 @@ class BanditEnvironment:
         self.contexts = X
         self.labels_onehot = Y
         self.opt_rewards = opt_rewards
+        _, self.n_arms = Y.shape
+        self.n_steps, self.n_features = X.shape
 
     def get_state(self, t):
         return self.labels_onehot[t]

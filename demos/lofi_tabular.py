@@ -8,6 +8,7 @@ import numpy as np
 import flax.linen as nn
 from datetime import datetime
 from bayes_opt import BayesianOptimization
+from bandits import training as btrain
 from bandits.agents.low_rank_filter_bandit import LowRankFilterBandit
 from bandits.environments.tabular_env import TabularEnvironment
 
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     ntrials = 10
     npulls = 20
     key = jax.random.PRNGKey(314)
-    key_env, key_train = jax.random.split(key)
+    key_env, key_warmup, key_train = jax.random.split(key, 3)
     ntrain = 500 # 5000
     env = TabularEnvironment(key_env, ntrain=ntrain, name='statlog', intercept=False, path="./bandit-data")
     num_arms = env.labels_onehot.shape[-1]
@@ -44,15 +45,17 @@ if __name__ == "__main__":
         "memory_size": 10,
         "model": model,
     }
-    
-    warmup_rewards, rewards_trace, opt_rewards = train(
-        key_train, LowRankFilterBandit, env, npulls, ntrials, kwargs_lofi, neural=False
-    )
+
+    n_features = env.n_features
+    n_arms = env.n_arms
+    bandit = LowRankFilterBandit(n_features, n_arms, **kwargs_lofi)
+
+    bel, hist_warmup = btrain.warmup_bandit(key_warmup, bandit, env, npulls)
+    bel, hist_train = btrain.run_bandit_trials(key_train, bel, bandit, env, t_start=npulls, n_trials=ntrials)
 
     res = {
-        "warmup_rewards": warmup_rewards,
-        "rewards_trace": rewards_trace,
-        "opt_rewards": opt_rewards,
+        "hist_warmup": hist_warmup,
+        "hist_train": hist_train,
     }
     res = jax.tree_map(np.array, res)
 
