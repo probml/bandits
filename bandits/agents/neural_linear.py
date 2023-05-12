@@ -1,8 +1,7 @@
+import jax
 import optax
 import jax.numpy as jnp
-from jax import lax
-from jax.random import split
-from flax.training import train_state
+from flax.training.train_state import TrainState
 
 from .agent_utils import train
 from tensorflow_probability.substrates import jax as tfp
@@ -25,10 +24,10 @@ class NeuralLinearBandit:
         self.model = model
 
     def init_bel(self, key, contexts, states, actions, rewards):
-        key, mykey = split(key)
+        key, mykey = jax.random.split(key)
         xdummy = jnp.zeros((self.num_features))
         initial_params = self.model.init(mykey, xdummy)
-        initial_train_state = train_state.TrainState.create(apply_fn=self.model.apply, params=initial_params,
+        initial_train_state = TrainState.create(apply_fn=self.model.apply, params=initial_params,
                                                             tx=self.opt)
 
         n_hidden_last = self.model.apply(initial_params, xdummy, capture_intermediates=True)[1]["intermediates"]["last_layer"]["__call__"][0].shape[0]
@@ -46,7 +45,7 @@ class NeuralLinearBandit:
         self.states = states
 
         initial_bel = (mu, Sigma, a, b, initial_train_state, t)
-        bel, _ = lax.scan(update, initial_bel, (contexts, actions, rewards))
+        bel, _ = jax.lax.scan(update, initial_bel, (contexts, actions, rewards))
         return bel
 
     def featurize(self, params, x, feature_layer="last_layer"):
@@ -65,14 +64,14 @@ class NeuralLinearBandit:
 
         def loss_fn(params):
             n_samples, *_ = self.contexts.shape
-            final_t = lax.cond(t == 0, lambda t: n_samples, lambda t: t.astype(int), t)
+            final_t = jax.lax.cond(t == 0, lambda t: n_samples, lambda t: t.astype(int), t)
             sample_range = (jnp.arange(n_samples) <= t)[:, None]
 
             pred_reward = self.model.apply(params, self.contexts)
             loss = (optax.l2_loss(pred_reward, self.states) * sample_range).sum() / final_t
             return loss, pred_reward
 
-        state = lax.cond(self.cond_update_params(t),
+        state = jax.lax.cond(self.cond_update_params(t),
                          lambda sgd_params: train(sgd_params[0], loss_fn=loss_fn, nepochs=self.nepochs)[0],
                          lambda sgd_params: sgd_params[0], sgd_params)
 
@@ -103,7 +102,7 @@ class NeuralLinearBandit:
 
     def sample_params(self, key, bel):
         mu, Sigma, a, b, _, _ = bel
-        sigma_key, w_key = split(key)
+        sigma_key, w_key = jax.random.split(key)
         sigma2 = tfd.InverseGamma(concentration=a, scale=b).sample(seed=sigma_key)
         covariance_matrix = sigma2[:, None, None] * Sigma
         w = tfd.MultivariateNormalFullCovariance(loc=mu, covariance_matrix=covariance_matrix).sample(seed=w_key)
