@@ -12,8 +12,6 @@ from bandits import training as btrain
 from bandits.agents.low_rank_filter_bandit import LowRankFilterBandit
 from bandits.environments.tabular_env import TabularEnvironment
 
-from bandits.scripts.training_utils import train # Move to bandits.training.warmup_deploy
-
 class MLP(nn.Module):
     num_arms: int
 
@@ -25,6 +23,50 @@ class MLP(nn.Module):
         x = nn.relu(x)
         x = nn.Dense(self.num_arms)(x)
         return x
+
+
+def warmup_and_run(eval_hparams, transform_fn, bandit_cls, env, key, npulls, n_trials=1, **kwargs):
+    key_warmup, key_train = jax.random.split(key, 2)
+    hparams = transform_fn(eval_hparams)
+    hparams = {**hparams, **kwargs}
+
+    bandit = bandit_cls(env.n_features, env.n_arms, **hparams)
+
+    bel, hist_warmup = btrain.warmup_bandit(key_warmup, bandit, env, npulls)
+    bel, hist_train = btrain.run_bandit_trials(key_train, bel, bandit, env, t_start=npulls, n_trials=n_trials)
+
+    res = {
+        "hist_warmup": hist_warmup,
+        "hist_train": hist_train,
+    }
+    res = jax.tree_map(np.array, res)
+
+    return res
+
+
+def transform_hparams_lofi(hparams):
+    emission_covariance = np.exp(hparams["log_em_cov"])
+    initial_covariance = np.exp(hparams["log_init_cov"])
+    dynamics_weights = 1 - np.exp(hparams["log_1m_dweights"])
+    dynamics_covariance = np.exp(hparams["log_dcov"])
+
+    hparams = {
+        "emission_covariance": emission_covariance,
+        "initial_covariance": initial_covariance,
+        "dynamics_weights": dynamics_weights,
+        "dynamics_covariance": dynamics_covariance,
+    }
+    return hparams
+
+
+def transform_hparams_linear(hparams):
+    eta = hparams["eta"]
+    lmbda = np.exp(hparams["log_lambda"])
+    hparams = {
+        "eta": eta,
+        "lmbda": lmbda,
+    }
+    return hparams
 
 
 if __name__ == "__main__":
