@@ -3,6 +3,7 @@ In this demo, we evaluate the performance of the
 lofi bandit on a tabular dataset
 """
 import jax
+import optax
 import pickle
 import numpy as np
 import flax.linen as nn
@@ -65,6 +66,20 @@ def transform_hparams_linear(hparams):
     hparams = {
         "eta": eta,
         "lmbda": lmbda,
+    }
+    return hparams
+
+
+def transform_hparams_neural_linear(hparams):
+    lr = np.exp(hparams["log_lr"])
+    eta = hparams["eta"]
+    lmbda = np.exp(hparams["log_lambda"])
+    opt = optax.adam(lr)
+
+    hparams = {
+        "lmbda": lmbda,
+        "eta": eta,
+        "opt": opt,
     }
     return hparams
 
