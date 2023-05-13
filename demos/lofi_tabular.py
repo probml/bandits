@@ -7,6 +7,7 @@ import optax
 import pickle
 import numpy as np
 import flax.linen as nn
+import jax.numpy as jnp
 from datetime import datetime
 from bayes_opt import BayesianOptimization
 from bandits import training as btrain
@@ -34,22 +35,25 @@ def warmup_and_run(eval_hparams, transform_fn, bandit_cls, env, key, npulls, n_t
     bandit = bandit_cls(env.n_features, env.n_arms, **hparams)
 
     bel, hist_warmup = btrain.warmup_bandit(key_warmup, bandit, env, npulls)
-    bel, hist_train = btrain.run_bandit_trials(key_train, bel, bandit, env, t_start=npulls, n_trials=n_trials)
+    if n_trials == 1:
+        bel, hist_train = btrain.run_bandit(key_train, bel, bandit, env, t_start=npulls)
+    elif n_trials > 1:
+        bel, hist_train = btrain.run_bandit_trials_pmap(key_train, bel, bandit, env, t_start=npulls, n_trials=n_trials)
 
     res = {
         "hist_warmup": hist_warmup,
         "hist_train": hist_train,
     }
-    res = jax.tree_map(np.array, res)
+    # res = jax.tree_map(np.array, res)
 
     return res
 
 
 def transform_hparams_lofi(hparams):
-    emission_covariance = np.exp(hparams["log_em_cov"])
-    initial_covariance = np.exp(hparams["log_init_cov"])
-    dynamics_weights = 1 - np.exp(hparams["log_1m_dweights"])
-    dynamics_covariance = np.exp(hparams["log_dcov"])
+    emission_covariance = jnp.exp(hparams["log_em_cov"])
+    initial_covariance = jnp.exp(hparams["log_init_cov"])
+    dynamics_weights = 1 - jnp.exp(hparams["log_1m_dweights"])
+    dynamics_covariance = jnp.exp(hparams["log_dcov"])
 
     hparams = {
         "emission_covariance": emission_covariance,
@@ -60,9 +64,24 @@ def transform_hparams_lofi(hparams):
     return hparams
 
 
+def transform_hparams_lofi_fixed(hparams):
+    """
+    Transformation assuming that the dynamicss weights 
+    and dynamics covariance are static
+    """
+    emission_covariance = jnp.exp(hparams["log_em_cov"])
+    initial_covariance = jnp.exp(hparams["log_init_cov"])
+
+    hparams = {
+        "emission_covariance": emission_covariance,
+        "initial_covariance": initial_covariance,
+    }
+    return hparams
+
+
 def transform_hparams_linear(hparams):
     eta = hparams["eta"]
-    lmbda = np.exp(hparams["log_lambda"])
+    lmbda = jnp.exp(hparams["log_lambda"])
     hparams = {
         "eta": eta,
         "lmbda": lmbda,
@@ -71,9 +90,9 @@ def transform_hparams_linear(hparams):
 
 
 def transform_hparams_neural_linear(hparams):
-    lr = np.exp(hparams["log_lr"])
+    lr = jnp.exp(hparams["log_lr"])
     eta = hparams["eta"]
-    lmbda = np.exp(hparams["log_lambda"])
+    lmbda = jnp.exp(hparams["log_lambda"])
     opt = optax.adam(lr)
 
     hparams = {
