@@ -16,7 +16,7 @@ class NeuralGreedyBandit(BanditAgent):
         self.memory_size = memory_size
         self.tx = tx
         self.epsilon = epsilon
-        self.n_inner = n_inner
+        self.n_inner = int(n_inner)
     
     def init_bel(self, key, contexts, states, actions, rewards):
         _, dim_in = contexts.shape

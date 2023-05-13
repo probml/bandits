@@ -17,6 +17,11 @@ class BanditAgent(ABC):
     def update_bel(self, bel, context, action, reward):
         ...
 
+    # TODO: Make it abstractmethod
+    # @abstractmethod
+    def predict_rewards(self, params, context):
+        ...
+
     def choose_action(self, key, bel, context):
         params = self.sample_params(key, bel)
         predicted_rewards = self.predict_rewards(params, context) 
