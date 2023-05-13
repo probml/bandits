@@ -1,114 +1,90 @@
 import jax
 import jax.numpy as jnp
 from jax.random import split
-from jax import vmap, lax
-from jax.nn import one_hot
-
-from flax.training import train_state
-
-from agent_utils import MLP
+from rebayes.sgd_filter import replay_sgd
+from bandits.agents.base import BanditAgent
 
 
-class NeuralGreedy:
-    def __init__(self, num_features, num_arms, epsilon, nepochs=1000, memory=None):
+class NeuralGreedyBandit(BanditAgent):
+    def __init__(
+        self, num_features, num_arms, model, memory_size, tx,
+        epsilon, n_inner=100
+    ):
         self.num_features = num_features
         self.num_arms = num_arms
-        self.model = MLP(num_features, num_arms)
+        self.model = model
+        self.memory_size = memory_size
+        self.tx = tx
         self.epsilon = epsilon
-        self.nepochs = nepochs
-        # self.memory = memory
-
-    def encode(self, context, action):
-        action_onehot = one_hot(action, self.num_arms)
-        x = jnp.concatenate([context, action_onehot])
-        return x
-
+        self.n_inner = n_inner
+    
     def init_bel(self, key, contexts, states, actions, rewards):
-        key, mykey = split(key)
+        _, dim_in = contexts.shape
+        X_dummy = jnp.ones((1, dim_in))
+        params = self.model.init(key, X_dummy)
+        out = self.model.apply(params, X_dummy)
+        dim_out = out.shape[-1]
 
-        initial_params = self.model.init(mykey, jnp.zeros((self.num_features,)))
-        initial_train_state = train_state.TrainState.create(apply_fn=self.model.apply, params=initial_params,
-                                                            tx=self.opt)
+        def apply_fn(params, xs):
+            return self.model.apply(params, xs)
 
-        t = 0
+        def predict_rewards(params, contexts):
+            return self.model.apply(params, contexts)
 
-        def update(carry, x):
-            bel, key = carry
-            context, action, reward = x
-            return (self.update_bel(bel, context, action, reward), key), None
+        agent = replay_sgd.FifoSGD(
+            lossfn=lossfn_rmse_extra_dim,
+            apply_fn=apply_fn,
+            tx=self.tx,
+            init_params=params,
+            buffer_size=self.memory_size,
+            dim_features=dim_in + 1,
+            dim_output=1,
+            n_inner=self.n_inner
+        )
 
-        initial_bel = (initial_train_state, t)
-        (bel, key), _ = lax.scan(update, (initial_bel, key), (contexts, actions, rewards))
+        bel = agent.init_bel()
+        self.agent = agent
+        self.predict_rewards = predict_rewards
+
         return bel
-
-    def cond_update_params(self, t):
-        return (t % self.update_step_mod) == 0
-
+    
+    def sample_params(self, key, bel):
+        return bel.params
+    
     def update_bel(self, bel, context, action, reward):
-        state = bel
-
-        if self.memory is not None:  # finite memory
-            if len(self.y) == self.memory:  # memory is full
-                self.X.pop(0)
-                self.y.pop(0)
-
-        x = self.encode(context, action)
-        self.X = jnp.vstack([self.X, x])
-        self.y = jnp.append(self.y, reward)
-
-        state = lax.cond(self.cond_update_params(t),
-                         lambda bel: train(self.model, bel[0], self.X, self.y, nepochs=self.nepochs, t=bel[1]),
-                         lambda bel: bel[0], bel)
-
-        bel = (state)
+        xs = jnp.r_[context, action]
+        bel = self.agent.update_state(bel, xs, reward)
         return bel
-
-    def init_bel(self, key, contexts, actions, rewards):
-        X = jax.vmap(self.encode)(contexts, actions)
-        y = rewards
-        params = self.model.init(key, X)["params"]
-
-        initial_train_state = train_state.TrainState.create(apply_fn=self.model.apply, params=initial_params,
-                                                            tx=self.opt)
-        params = fit_model(key, self.model, X, y, params)
-        bel = (initial_train_state)
-        return bel
-
-    def update_bel(self, key, bel, context, action, reward):
-        (X, y, variables) = bel
-        if self.memory is not None:  # finite memory
-            if len(y) == self.memory:  # memory is full
-                X.pop(0)
-                y.pop(0)
-        x = self.encode(context, action)
-        X = jnp.vstack([X, x])
-        y = jnp.append(y, reward)
-        variables = fit_model(key, self.model, X, y, variables)
-        bel = (X, y, variables)
-        return bel
-
+    
     def choose_action(self, key, bel, context):
-        (X, y, params) = bel
-        key, mykey = split(key)
+        key, key_action = split(key)
+        greedy = jax.random.bernoulli(key, 1 - self.epsilon)
 
-        def explore(actions):
-            # random action
-            _, mykey = split(key)
-            action = jax.random.choice(mykey, actions)
+        def explore():
+            action = jax.random.randint(key_action, shape=(), minval=0, maxval=self.num_arms)
             return action
-
-        def exploit(actions):
-            # greedy action
-            def get_reward(a):
-                x = self.encode(context, a)
-                return self.model.apply({"params": params}, x)
-
-            predicted_rewards = vmap(get_reward)(actions)
-            action = predicted_rewards.argmax()
+        
+        def exploit():
+            params = self.sample_params(key, bel)
+            predicted_rewards = self.predict_rewards(params, context) 
+            action = predicted_rewards.argmax(axis=-1)
             return action
-
-        coin = jax.random.bernoulli(mykey, self.epsilon, (1,))[0]
-        actions = jnp.arange(self.num_arms)
-        action = jax.lax.cond(coin == 0, explore, exploit, actions)
-
+        
+        action = jax.lax.cond(greedy == 1, exploit, explore)
         return action
+
+
+def lossfn_rmse_extra_dim(params, counter, xs, y, apply_fn):
+    """
+    Lossfunction for regression problems.
+    We consider an extra dimension in the input xs, which is the action.
+    """
+    X = xs[..., :-1]
+    action = xs[..., -1].astype(jnp.int32)
+    buffer_size = X.shape[0]
+    ix_slice = jnp.arange(buffer_size)
+    yhat = apply_fn(params, X)[ix_slice, action].ravel()
+    y = y.ravel()
+    err = jnp.power(y - yhat, 2)
+    loss = (err * counter).sum() / counter.sum()
+    return loss
