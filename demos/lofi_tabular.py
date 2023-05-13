@@ -102,6 +102,13 @@ def transform_hparams_neural_linear(hparams):
     }
     return hparams
 
+def transform_hparams_rsgd(hparams):
+    lr = jnp.exp(hparams["log_lr"])
+    tx = optax.adam(lr)
+    hparams = {
+        "tx": tx,
+    }
+    return hparams
 
 if __name__ == "__main__":
     ntrials = 10
