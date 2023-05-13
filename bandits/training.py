@@ -44,3 +44,11 @@ def run_bandit_trials(key, bel, bandit, env, t_start=0, n_trials=1):
 
     bel, hist = run_partial(keys)
     return bel, hist
+
+def run_bandit_trials_pmap(key, bel, bandit, env, t_start=0, n_trials=1):
+    keys = jax.random.split(key, n_trials)
+    run_partial = partial(run_bandit, bel=bel, bandit=bandit, env=env, t_start=t_start)
+    run_partial = jax.pmap(run_partial)
+
+    bel, hist = run_partial(keys)
+    return bel, hist
