@@ -35,14 +35,13 @@ class NeuralGreedyBandit(BanditAgent):
             lossfn=lossfn_rmse_extra_dim,
             apply_fn=apply_fn,
             tx=self.tx,
-            init_params=params,
             buffer_size=self.memory_size,
             dim_features=dim_in + 1,
             dim_output=1,
             n_inner=self.n_inner
         )
 
-        bel = agent.init_bel()
+        bel = agent.init_bel(params, None)
         self.agent = agent
         self.predict_rewards = predict_rewards
 

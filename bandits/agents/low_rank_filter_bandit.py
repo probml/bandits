@@ -33,13 +33,10 @@ class LowRankFilterBandit(BanditAgent):
             context, action = xs
             return self.model.apply(recfn(flat_params), context)[action, None]
         
-
         def predict_rewards(flat_params, context):
             return self.model.apply(recfn(flat_params), context)
         
-        lofi_params = lofi.LoFiParams(
-            initial_mean=flat_params,
-            initial_covariance=self.initial_covariance,
+        agent = lofi.RebayesLoFiDiagonal(
             dynamics_weights=self.dynamics_weights,
             dynamics_covariance=self.dynamics_covariance,
             emission_mean_function=apply_fn,
@@ -50,9 +47,7 @@ class LowRankFilterBandit(BanditAgent):
             steady_state=False,
             emission_dist=tfd.Normal
         )
-
-        agent = lofi.RebayesLoFiDiagonal(lofi_params)
-        bel = agent.init_bel()
+        bel = agent.init_bel(flat_params, self.initial_covariance)
         self.agent = agent
         self.predict_rewards = predict_rewards
 
