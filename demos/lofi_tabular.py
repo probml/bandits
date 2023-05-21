@@ -28,6 +28,7 @@ class MLP(nn.Module):
 
 
 def warmup_and_run(eval_hparams, transform_fn, bandit_cls, env, key, npulls, n_trials=1, **kwargs):
+    n_devices = jax.local_device_count()
     key_warmup, key_train = jax.random.split(key, 2)
     hparams = transform_fn(eval_hparams)
     hparams = {**hparams, **kwargs}
@@ -37,8 +38,11 @@ def warmup_and_run(eval_hparams, transform_fn, bandit_cls, env, key, npulls, n_t
     bel, hist_warmup = btrain.warmup_bandit(key_warmup, bandit, env, npulls)
     if n_trials == 1:
         bel, hist_train = btrain.run_bandit(key_train, bel, bandit, env, t_start=npulls)
-    elif n_trials > 1:
+    elif 1 < n_trials <= n_devices:
         bel, hist_train = btrain.run_bandit_trials_pmap(key_train, bel, bandit, env, t_start=npulls, n_trials=n_trials)
+    elif n_trials > n_devices:
+        bel, hist_train = btrain.run_bandit_trials_multiple(key_train, bel, bandit, env, t_start=npulls, n_trials=n_trials)
+
 
     res = {
         "hist_warmup": hist_warmup,
