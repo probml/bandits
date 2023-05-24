@@ -54,8 +54,7 @@ class LowRankFilterBandit(BanditAgent):
         return bel
     
     def sample_params(self, key, bel):
-        bel = self.agent.predict_state(bel)
-        params_samp = sample_dlr_single(key, bel.basis, bel.Ups.ravel()) + bel.mean.ravel()
+        params_samp = self.agent.sample_state(bel, key, 1).ravel()
         return params_samp
     
     def update_bel(self, bel, context, action, reward):
