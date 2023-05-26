@@ -36,7 +36,7 @@ class NeuralGreedyBandit(BanditAgent):
             apply_fn=apply_fn,
             tx=self.tx,
             buffer_size=self.memory_size,
-            dim_features=dim_in + 1,
+            dim_features=dim_in + 1, # +1 for the action
             dim_output=1,
             n_inner=self.n_inner
         )
