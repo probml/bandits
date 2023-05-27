@@ -11,6 +11,8 @@ tfd = tfp.distributions
 class LowRankFilterBandit(BanditAgent):
     """
     Regression bandit with low-rank filter.
+    We consider a single neural network with k 
+    outputs corresponding to the k arms.
     """
     def __init__(self, num_features, num_arms, model, memory_size, emission_covariance,
                 initial_covariance, dynamics_weights, dynamics_covariance):
@@ -61,3 +63,42 @@ class LowRankFilterBandit(BanditAgent):
         xs = (context, action)
         bel = self.agent.update_state(bel, xs, reward)
         return bel
+
+
+class LowRankGreedy(LowRankFilterBandit):
+    """
+    Low-rank filter with greedy action selection.
+    """
+    def __init__(self, num_features, num_arms, model, memory_size, emission_covariance,
+                initial_covariance, dynamics_weights, dynamics_covariance, epsilon):
+        super().__init__(num_features, num_arms, model, memory_size, emission_covariance,
+                initial_covariance, dynamics_weights, dynamics_covariance)
+        self.epsilon = epsilon
+    
+    def choose_action(self, key, bel, context):
+        key, key_action = jax.random.split(key)
+        greedy = jax.random.bernoulli(key, 1 - self.epsilon)
+        if greedy:
+            rewards = self.predict_rewards(bel.state, context)
+            action = jnp.argmax(rewards)
+        else:
+            action = jax.random.randint(key_action, (1,), 0, self.num_arms)
+        return action
+    
+
+    def choose_action(self, key, bel, context):
+        key, key_action = jax.random.split(key)
+        greedy = jax.random.bernoulli(key, 1 - self.epsilon)
+
+        def explore():
+            action = jax.random.randint(key_action, shape=(), minval=0, maxval=self.num_arms)
+            return action
+        
+        def exploit():
+            params = bel.mean
+            predicted_rewards = self.predict_rewards(params, context) 
+            action = predicted_rewards.argmax(axis=-1)
+            return action
+        
+        action = jax.lax.cond(greedy == 1, exploit, explore)
+        return action
