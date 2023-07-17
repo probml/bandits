@@ -8,6 +8,7 @@ import pickle
 import numpy as np
 import flax.linen as nn
 import jax.numpy as jnp
+from time import time
 from datetime import datetime
 from bayes_opt import BayesianOptimization
 from bandits import training as btrain
@@ -36,19 +37,23 @@ def warmup_and_run(eval_hparams, transform_fn, bandit_cls, env, key, npulls, n_t
     bandit = bandit_cls(env.n_features, env.n_arms, **hparams)
 
     bel, hist_warmup = btrain.warmup_bandit(key_warmup, bandit, env, npulls)
+    time_init = time()
     if n_trials == 1:
         bel, hist_train = btrain.run_bandit(key_train, bel, bandit, env, t_start=npulls)
     elif 1 < n_trials <= n_devices:
         bel, hist_train = btrain.run_bandit_trials_pmap(key_train, bel, bandit, env, t_start=npulls, n_trials=n_trials)
     elif n_trials > n_devices:
         bel, hist_train = btrain.run_bandit_trials_multiple(key_train, bel, bandit, env, t_start=npulls, n_trials=n_trials)
+    time_end = time()
+    total_time = time_end - time_init
 
 
     res = {
         "hist_warmup": hist_warmup,
         "hist_train": hist_train,
     }
-    # res = jax.tree_map(np.array, res)
+    res = jax.tree_map(np.array, res)
+    res["total_time"] = total_time
 
     return res
 
