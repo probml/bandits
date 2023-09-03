@@ -52,10 +52,24 @@ def warmup_and_run(eval_hparams, transform_fn, bandit_cls, env, key, npulls, n_t
         "hist_warmup": hist_warmup,
         "hist_train": hist_train,
     }
-    res = jax.tree_map(np.array, res)
+    # res = jax.tree_map(np.array, res)
     res["total_time"] = total_time
 
     return res
+
+
+def transform_hparams_subspace_fixed(hparams):
+    emission_covariance = jnp.exp(hparams["log_em_cov"])
+    initial_covariance = jnp.exp(hparams["log_init_cov"])
+    warmup_learning_rate = jnp.exp(hparams["log_warmup_lr"])
+
+    hparams = {
+        "observation_noise": emission_covariance,
+        "prior_noise_variance": initial_covariance,
+        "opt": warmup_learning_rate,
+    }
+
+    return hparams
 
 
 def transform_hparams_lofi(hparams):
